@@ -1,0 +1,11 @@
+pandas
+langgraph
+python-dotenv
+openai
+qdrant-client
+langgraph-checkpoint-sqlite
+# Added later, as we build each piece:
+# langchain / langchain-openai or langchain-cohere  -- for the LLM nodes
+# langgraph-checkpoint-postgres, psycopg2-binary     -- for HIL interrupt/resume persistence
+# qdrant-client, sentence-transformers               -- for the precedent-search RAG step
+# fastapi, uvicorn                                   -- for the review API
