@@ -47,7 +47,7 @@ already_touched_ids = {int(tid.split("_")[-1]) for tid in list(pending.keys()) +
 st.subheader("Pull a new application for review")
 col1, col2 = st.columns([3, 1])
 with col1:
-    st.write("Pulling an ambiguous application makes real API calls (embedding + 2 LLM calls, a few cents).")
+    st.write("Reviews a new application using AI and searches similar past decisions to prepare a draft for your review.")
 with col2:
     if st.button("Pull next ambiguous application", type="primary"):
         next_id = None
@@ -98,11 +98,16 @@ if not pending:
     st.write("No applications currently pending review.")
 else:
     thread_ids = list(pending.keys())
-    selected = st.selectbox("Select an application to review", thread_ids)
+    display_labels = {tid: f"Application #{tid.split('_')[-1]}" for tid in thread_ids}
+    selected = st.selectbox(
+        "Select an application to review",
+        thread_ids,
+        format_func=lambda tid: display_labels[tid]
+    )
 
     if selected:
         payload = pending[selected]
-        st.markdown(f"### {selected}")
+        st.markdown(f"### Application #{selected.split('_')[-1]}")
 
         c1, c2 = st.columns(2)
         with c1:
@@ -151,16 +156,24 @@ n_auto = sum(1 for d in decided.values() if not d.get("required_human_review", T
 n_human = len(decided) - n_auto
 st.subheader(f"All decisions ({len(decided)} total -- {n_auto} auto-decided, {n_human} human-reviewed)")
 if decided:
+    
+    STATUS_LABELS = {
+    "auto_approved_log": "Auto-Approved",
+    "auto_denied_log": "Auto-Denied",
+    "underwriter_approved_log": "Approved (Reviewed)",
+    "underwriter_denied_log": "Denied (Reviewed)",
+    "underwriter_needs_more_info_log": "Needs More Info (Reviewed)",
+}
+
     log_rows = [
-        {
-            "thread_id": tid,
-            "required_human_review": d.get("required_human_review", True),
-            "final_action": d["decision"]["final_action"],
-            "assigned_queue": d["assigned_queue"],
-            "notes": d["decision"]["notes"],
+        {   
+            "Application": f"#{tid.split('_')[-1]}",
+            "Outcome": STATUS_LABELS.get(d["assigned_queue"], d["assigned_queue"]),
+            "Reviewed by Human?": "Yes" if d.get("required_human_review", True) else "No",
+            "Notes": d["decision"]["notes"] if d.get("required_human_review", True) else "—",
         }
         for tid, d in decided.items()
     ]
-    st.dataframe(pd.DataFrame(log_rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(log_rows), use_container_width=True, hide_index=True)
 else:
     st.write("No decisions recorded yet.")
