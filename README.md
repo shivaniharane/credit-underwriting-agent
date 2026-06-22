@@ -1,8 +1,16 @@
-# Credit Underwriting Agent
+# Human-in-the-Loop Credit Underwriting Agent
 
 A LangGraph agent that helps a credit union review mortgage applications — simple cases get decided instantly by rule, genuinely unclear cases get AI-assisted analysis grounded in real historical precedent, and a human always makes the final call on anything uncertain.
 
-Built on real 2024 HMDA mortgage data for Visions Federal Credit Union, Broome County, NY (392 real applications).
+**Live demo:** https://credit-underwriting-agent.streamlit.app/
+
+Built on real 2024 HMDA mortgage data for Visions Federal Credit Union, Broome County, NY.
+
+---
+
+![Main UI](screenshots/ui_main.png)
+
+---
 
 ## Why this exists
 
@@ -39,23 +47,32 @@ Deterministic check (debt-to-income, loan-to-value)
           Decision recorded, queue updated
 ```
 
+## Screenshots
+
+### AI-assisted review
+![Pending Review](screenshots/ui_review.png)
+
+### Full decision audit log
+![Decision Log](screenshots/ui_decisions.png)
+
 ## Highlights
 
 - **Real human-in-the-loop, not a simulation of one** — the pause is a genuine LangGraph `interrupt()`, persisted via SQLite. Proven by starting a review, killing the Python process entirely, and resuming it in a fresh terminal — the system picked up exactly where it left off.
 - **Deterministic-first design** — 20% of applications are decided by simple, auditable rules with zero AI cost. The AI is only used where a clear rule genuinely can't decide.
-- **Eval-driven, not just built-and-shipped** — ran a full evaluation across all 312 ambiguous applications against real outcomes, found a specific failure mode (the AI over-trusting misleading precedent, responsible for 69% of all errors), and fixed it with a validated, zero-cost threshold recalibration that improved denial recall from 12.7% to 52.7%.
+- **Eval-driven, not just built-and-shipped** — ran a full evaluation against real historical lending outcomes, found a specific failure mode (the AI over-trusting misleading precedent, responsible for 69% of all errors), and fixed it with a validated, zero-cost threshold recalibration that improved denial recall 4x.
 - **Privacy-aware by construction** — race, ethnicity, sex, and age are present in the raw data (HMDA requires this for fair-lending audits) but are never extracted into the features the AI sees, so they're structurally impossible to leak into a decision.
+- **Complete audit trail** — every decision, whether auto-decided or human-reviewed, is logged with its outcome and reasoning.
 
 ## Results
 
-Evaluated against all 312 real ambiguous applications, compared to actual historical outcomes:
+Evaluated against real historical lending outcomes:
 
 | | Before threshold tuning | After |
 |---|---|---|
 | Overall accuracy | 84.3% | 87.8% |
 | Denial recall | 12.7% | 52.7% |
 
-(For reference: a system that did zero analysis and always guessed "approve" would score 82.4% — accuracy alone is a misleading metric on this kind of imbalanced data, which is exactly why denial recall mattered more here.)
+(A system that always guessed "approve" would score 82.4% — accuracy alone is a misleading metric on imbalanced data, which is why denial recall mattered more here.)
 
 ## Tech stack
 
@@ -73,14 +90,10 @@ Evaluated against all 312 real ambiguous applications, compared to actual histor
 ```bash
 git clone https://github.com/shivaniharane/credit-underwriting-agent.git
 cd credit-underwriting-agent
-
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
 pip install -r requirements.txt
 ```
 
-Create a `.env` file with your OpenAI key:
+Create a `.env` file:
 ```
 OPENAI_API_KEY=your-key-here
 ```
@@ -90,7 +103,7 @@ Build the precedent index (one-time, costs under a cent):
 python build_precedent_index.py
 ```
 
-Launch the review UI:
+Launch the UI:
 ```bash
 streamlit run app.py
 ```
@@ -99,10 +112,11 @@ streamlit run app.py
 
 ```
 credit-underwriting-agent/
-├── data/                       # Source HMDA dataset
+├── data/                        # Source HMDA dataset
+├── screenshots/                 # UI screenshots
 ├── src/
-│   ├── state.py                # LangGraph state schema
-│   ├── features.py             # Raw application → decision-safe features
+│   ├── state.py                 # LangGraph state schema
+│   ├── features.py              # Raw application → decision-safe features
 │   ├── routing.py               # Deterministic clear/ambiguous classification
 │   ├── investigation.py         # Qdrant precedent search
 │   ├── assessor.py              # LLM risk assessment
@@ -111,8 +125,9 @@ credit-underwriting-agent/
 │   └── graph.py                 # LangGraph orchestration + HIL interrupt
 ├── build_precedent_index.py     # One-time precedent index builder
 ├── app.py                       # Streamlit review UI
-├── start_review.py / resume_review.py   # CLI proof of interrupt persistence
-├── eval_harness_final.py        # Full evaluation across 312 real cases
+├── start_review.py              # CLI proof of interrupt persistence
+├── resume_review.py             # CLI proof of resume across process restart
+├── eval_harness_final.py        # Full evaluation against real outcomes
 ├── threshold_analysis.py        # Zero-cost threshold recalibration
 └── eval_results_final.csv       # Raw evaluation results
 ```
