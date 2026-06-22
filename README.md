@@ -132,6 +132,9 @@ credit-underwriting-agent/
 └── eval_results_final.csv       # Raw evaluation results
 ```
 
-## Known limitation
+## Author
 
-Precedent search and AI assessment can only see what HMDA actually reports — which notably does not include credit scores or credit history detail, the single most common real denial reason. This is a genuine, structural ceiling on accuracy, not a fixable bug — and it's the concrete reason the human-in-the-loop step exists rather than full automation.
+Built by **Shivani Harane**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-shivaniharane-blue?logo=linkedin)](https://linkedin.com/in/shivaniharne)
+[![GitHub](https://img.shields.io/badge/GitHub-shivaniharane-black?logo=github)](https://github.com/shivaniharane)
