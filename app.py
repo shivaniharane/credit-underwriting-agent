@@ -158,11 +158,11 @@ st.subheader(f"All decisions ({len(decided)} total -- {n_auto} auto-decided, {n_
 if decided:
     
     STATUS_LABELS = {
-    "auto_approved_log": "Auto-Approved",
-    "auto_denied_log": "Auto-Denied",
-    "underwriter_approved_log": "Approved (Reviewed)",
-    "underwriter_denied_log": "Denied (Reviewed)",
-    "underwriter_needs_more_info_log": "Needs More Info (Reviewed)",
+        "auto_approved_log": "Auto-Approved",
+        "auto_denied_log": "Auto-Denied",
+        "underwriter_approved_log": "Approved (Reviewed)",
+        "underwriter_denied_log": "Denied (Reviewed)",
+        "underwriter_needs_more_info_log": "Needs More Info (Reviewed)",
 }
 
     log_rows = [
